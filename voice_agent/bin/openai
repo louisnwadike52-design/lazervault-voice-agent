@@ -1,4 +1,4 @@
-#!/Users/louislawrence/Music/apps/lazervault-voice-agent/voice_agent/bin/python3
+#!/Users/louislawrence/Music/apps/stack/lazervault-voice-agent/voice_agent/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

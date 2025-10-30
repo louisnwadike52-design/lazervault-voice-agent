@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/louislawrence/Music/apps/lazervault-voice-agent/voice_agent"
+VIRTUAL_ENV="/Users/louislawrence/Music/apps/stack/lazervault-voice-agent/voice_agent"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

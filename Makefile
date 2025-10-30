@@ -1,56 +1,59 @@
-.PHONY: install requirements run download_models setup clean_venv help
+.PHONY: help install run shell migrate requirements deploy
 
-# This Makefile assumes you have activated the 'voice_agent' virtual environment
-# for targets other than 'setup' and 'clean_venv'.
+# Variables
+PYTHON = python
+PIP = pip
+ACTIVATE = . voice_agent/bin/activate &&
+MANAGE = $(ACTIVATE) $(PYTHON) manage.py
 
-# Target to set up the virtual environment
-setup:
-	python3 -m venv voice_agent
-	@echo "Virtual environment 'voice_agent' created."
-	@echo "Please activate it using: source voice_agent/bin/activate"
-	@echo "Then run 'make install' followed by 'make download_models'."
+# Get the current timestamp for versioning
+VERSION := $(shell date +%Y%m%d-%H%M%S)
+IMAGE_NAME := europe-west1-docker.pkg.dev/juicy-odds/voice/voice-agent
 
-# Target to install dependencies
-# It depends on requirements.txt, but requirements.txt might not exist initially.
-# We will create/update requirements.txt after a successful install or explicitly.
-install:
-	pip install python-dotenv "livekit-agents[openai,silero]"
-	@echo "Dependencies installed."
-	@echo "Run 'make requirements' to update/create requirements.txt with exact versions."
-
-# Target to generate/update requirements.txt
-requirements:
-	pip freeze > requirements.txt
-	@echo "requirements.txt has been generated/updated with current environment packages."
-
-# Target to run the application
-run:
-	python main.py start
-
-# Target to download models required by livekit plugins
-download_models:
-	python main.py download-files
-	@echo "Attempted to download model files if required by livekit plugins."
-
-# Target to clean the virtual environment
-clean_venv:
-	rm -rf voice_agent
-	@echo "Virtual environment 'voice_agent' removed."
-
-# Help target to display available commands
 help:
 	@echo "Available commands:"
-	@echo "  setup          : Creates the Python virtual environment 'voice_agent'."
-	@echo "  install        : Installs core dependencies (run after activating venv)."
-	@echo "  requirements   : Generates/updates requirements.txt from the current environment (run after activating venv and installing)."
-	@echo "  run            : Runs the main application (main.py) (run after activating venv)."
-	@echo "  download_models: Downloads necessary model files for livekit plugins (run after activating venv and installing)."
-	@echo "  clean_venv     : Removes the virtual environment."
-	@echo "---"
-	@echo "Recommended workflow for a fresh setup:"
-	@echo "1. make setup"
-	@echo "2. source voice_agent/bin/activate"
-	@echo "3. make install"
-	@echo "4. make download_models"
-	@echo "5. make requirements  # To lock down dependency versions"
-	@echo "6. make run" 
+	@echo "  requirements - Freeze dependencies into requirements.txt"
+	@echo "  install      - Install dependencies from requirements.txt"
+	@echo "  migrate      - Run database migrations"
+	@echo "  run          - Run the Django development server"
+	@echo "  shell        - Start a new shell with the venv activated"
+	@echo "  deploy       - Deploy to App Engine"
+
+requirements:
+	$(ACTIVATE) $(PIP) freeze > requirements.txt
+	@echo "requirements.txt updated."
+
+install:
+	$(ACTIVATE) $(PIP) install -r requirements.txt
+
+migrate:
+	$(MANAGE) migrate
+
+create_superuser:
+	$(MANAGE) createsuperuser
+
+run:
+	$(PYTHON) main.py start
+
+quota: 
+	gcloud auth application-default set-quota-project juicy-odds
+
+deploy:
+	# Authenticate Docker to Artifact Registry
+	gcloud auth configure-docker europe-west1-docker.pkg.dev
+	# Build with version
+	docker build --build-arg BUILD_VERSION=$(VERSION) -t $(IMAGE_NAME):$(VERSION) .
+	# Push only versioned tag
+	docker push $(IMAGE_NAME):$(VERSION)
+	# Deploy to App Engine
+	gcloud app deploy app.yaml --project=juicy-odds --quiet
+
+shell:
+	$(ACTIVATE) zsh # Or bash, depending on your preference 
+
+create-repo:
+	gcloud artifacts repositories create voice \
+    --repository-format=docker \
+    --location=europe-west1 \
+    --description="Voice agent container images" \
+    --project=juicy-odds
