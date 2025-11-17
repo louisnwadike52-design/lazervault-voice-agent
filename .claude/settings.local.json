@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git cat-file:*)",
+      "Bash(GIT_LFS_SKIP_SMUDGE=1 git rm:*)"
     ],
     "deny": [],
     "ask": []
