@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+voice_agent/
+venv/
+ENV/
+env/
+.venv/
+
+# Environment variables
+# NOTE: .env files are temporarily tracked for deployment
+# TODO: Move secrets to cloud secret manager
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Claude IDE
+.claude/
