@@ -11,6 +11,7 @@ venv/
 ENV/
 env/
 .venv/
+.env
 
 # Environment variables
 # NOTE: .env files are temporarily tracked for deployment
